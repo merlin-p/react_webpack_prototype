@@ -18,7 +18,19 @@ defmodule ReactWebpackPrototype do
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: ReactWebpackPrototype.Supervisor]
-    Supervisor.start_link(children, opts)
+
+    # thanks to https://github.com/bitwalker/exrm/issues/67#issuecomment-182818363
+    res = Supervisor.start_link(children, opts)
+
+    path_to_migrations =
+      case Mix.env do
+        :dev  -> "priv/repo/migrations"
+        _     -> "/home/deploy/phoenix-react-playground/priv/repo/migrations"
+      end
+    IO.puts "######### run migrations..."
+    Ecto.Migrator.run(ReactWebpackPrototype.Repo, path_to_migrations, :up, all: true)
+
+    res
   end
 
   # Tell Phoenix to update the endpoint configuration
